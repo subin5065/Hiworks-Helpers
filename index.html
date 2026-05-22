@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>출퇴근 관리</title>
+<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+.ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.ico svg{display:block}
+.icon-btn .ico svg{width:26px;height:26px}
+.back-btn .ico svg{width:26px;height:26px}
+.btn .ico svg{width:18px;height:18px}
+.type-btn .ico svg{width:22px;height:22px}
+.pill .ico svg{width:13px;height:13px}
+.cl-num .ico svg{width:13px;height:13px}
+.copy-btn .ico svg{width:18px;height:18px}
+.danger-title .ico svg{width:18px;height:18px}
+.btn-ghost .ico svg{width:18px;height:18px}
+.hist-edit-btn .ico svg{width:18px;height:18px}
+</style>
+<script>
+const ICONS={
+  'arrow-left':'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m5 12 6-6"/><path d="m5 12 6 6"/></svg>',
+  'calendar':'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>',
+  'settings':'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>',
+  'building':'<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>',
+  'home':'<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  'player-play':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
+  'check':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  'external-link':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
+  'door-exit':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 12h7"/><path d="m16 9 3 3-3 3"/><path d="M5 21a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v2"/><path d="M5 11v2"/></svg>',
+  'home-arrow':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  'copy':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  'chevron-right':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+  'hash':'<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>',
+  'alert-triangle':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+  'refresh':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>',
+  'x':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  'clock':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  'edit':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  'bell':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>'
+};
+function ic(name,extraStyle=''){
+  if(ICONS[name])return`<span class="ico" style="${extraStyle}">${ICONS[name]}</span>`;
+  return`<i class="ti ti-${name}" style="${extraStyle}"></i>`;
+}
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
+  :root {
+    --bg:#F2F4F6;--surface:#fff;--surface2:#F2F4F6;--border:#E5E8EB;
+    --t1:#191F28;--t2:#6B7684;--t3:#B0B8C1;
+    --blue:#3182F6;--blue-l:#EBF3FF;--blue-t:#1B64DA;
+    --green:#00B493;--green-l:#E8FBF7;--green-t:#00907A;
+    --amber:#FF9500;--amber-l:#FFF5E6;--amber-t:#B35F00;
+    --red:#F04452;--red-l:#FFF0F1;--red-t:#C0293A;
+    --gray:#8B95A1;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--t1);max-width:390px;margin:0 auto;min-height:100vh}
+
+  /* ── HEADER ── */
+  .header{
+    background:var(--surface);
+    padding:0 20px;
+    height:60px;
+    display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:10;
+    border-bottom:1px solid var(--border);
+  }
+  .header-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+  .back-btn{background:none;border:none;cursor:pointer;color:var(--t1);font-size:24px;padding:4px;display:flex;align-items:center;flex-shrink:0;border-radius:8px}
+  .back-btn:hover{background:var(--bg)}
+  .header-text{min-width:0}
+  .header-date{font-size:12px;color:var(--t2);font-weight:500;white-space:nowrap}
+  .header-title{font-size:18px;font-weight:800;color:var(--t1);white-space:nowrap;display:flex;align-items:center;gap:8px}
+  .header-right{display:flex;align-items:center;gap:4px;flex-shrink:0}
+  .icon-btn{background:none;border:none;cursor:pointer;color:var(--t2);font-size:24px;padding:6px;display:flex;align-items:center;border-radius:8px;transition:background .15s}
+  .icon-btn:hover{background:var(--bg)}
+
+  /* ── TABS ── */
+  .tabs{background:var(--surface);display:flex;border-bottom:1px solid var(--border)}
+  .tab{flex:1;background:none;border:none;cursor:pointer;padding:12px 0;font-size:14px;font-weight:700;color:var(--t3);position:relative;transition:color .15s;font-family:inherit}
+  .tab.active{color:var(--t1)}
+  .tab.active::after{content:'';position:absolute;bottom:-1px;left:20%;right:20%;height:2.5px;background:var(--t1);border-radius:2px}
+
+  /* ── LAYOUT ── */
+  .screen{display:none}.screen.active{display:block}
+  .body{padding:20px 16px}
+  .card{background:var(--surface);border-radius:16px;padding:20px;margin-bottom:12px}
+  .card-title{font-size:13px;font-weight:700;color:var(--t2);margin-bottom:14px}
+
+  /* ── FORM ── */
+  .type-row{display:flex;gap:8px;margin-bottom:16px}
+  .type-btn{flex:1;padding:14px 8px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--t2);font-size:14px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .15s;font-family:inherit}
+  .type-btn .ti{font-size:22px}
+  .type-btn.on{border-color:var(--blue);background:var(--blue-l);color:var(--blue-t)}
+  .field-label{font-size:13px;font-weight:700;color:var(--t2);margin-bottom:8px}
+  .time-wrap{margin-bottom:16px}
+  .time-wrap input[type=time]{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:12px;background:var(--surface2);color:var(--t1);font-size:22px;font-weight:800;font-family:inherit;outline:none;transition:border-color .15s}
+  .time-wrap input[type=time]:focus{border-color:var(--blue)}
+
+  /* ── BUTTONS ── */
+  .btn{width:100%;padding:15px;border-radius:12px;border:none;cursor:pointer;font-size:15px;font-weight:800;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .12s,transform .1s}
+  .btn .ti{font-size:18px}
+  .btn:active{transform:scale(0.98);opacity:.85}
+  .btn+.btn{margin-top:8px}
+  .btn-row{display:flex;gap:8px}.btn-row .btn{flex:1;width:auto}
+  .btn-row+.btn{margin-top:8px}
+  .btn-blue{background:var(--blue);color:#fff}
+  .btn-green{background:var(--green);color:#fff}
+  .btn-amber{background:var(--amber);color:#fff}
+  .btn-red{background:var(--red);color:#fff}
+  .btn-gray{background:var(--surface2);color:var(--t1);border:1.5px solid var(--border)}
+  .btn-hiworks{background:var(--surface);color:var(--t1);border:1.5px solid var(--border);padding:13.5px 14px}
+  .btn-ghost{background:none;border:none;color:var(--t2);font-size:14px;font-weight:700;cursor:pointer;width:100%;padding:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
+  .btn-dim{opacity:.4}
+  .toggle-btn{width:51px;height:31px;border-radius:16px;border:none;cursor:pointer;position:relative;background:var(--border);transition:background .2s;flex-shrink:0}
+  .toggle-btn::after{content:'';position:absolute;top:3px;left:3px;width:25px;height:25px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .toggle-btn.on{background:var(--green)}
+  .toggle-btn.on::after{transform:translateX(20px)}
+  .toggle-btn:disabled{opacity:.4;cursor:default}
+  .notif-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .notif-info{flex:1;margin-right:12px}
+  .notif-name{font-size:14px;font-weight:700;color:var(--t1);margin-bottom:2px}
+  .notif-desc{font-size:13px;color:var(--t2);font-weight:500}
+
+
+  /* ── CONTENT ── */
+  .big-num{font-size:44px;font-weight:800;color:var(--t1);letter-spacing:-2px;line-height:1;margin-bottom:4px}
+  .big-sub{font-size:14px;color:var(--t2);font-weight:600;margin-bottom:20px}
+  .big-sub strong{color:var(--t1)}
+  .prog-wrap{margin-bottom:14px}
+  .prog-head{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--t2);margin-bottom:8px}
+  .prog-head span:last-child{color:var(--t1)}
+  .prog-track{height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+  .prog-fill{height:100%;border-radius:3px;transition:width .4s ease}
+  .pf-blue{background:var(--blue)}.pf-green{background:var(--green)}
+  .notice{border-radius:12px;padding:14px 16px;margin-bottom:12px;font-size:14px;line-height:1.5}
+  .notice-title{font-weight:800;margin-bottom:2px}
+  .n-info{background:var(--blue-l);color:var(--blue-t);border:1.5px solid #93C5FD}
+  .n-ok{background:var(--green-l);color:var(--green-t);border:1.5px solid #6EE7C7}
+  .n-warn{background:var(--amber-l);color:var(--amber-t);border:1.5px solid #FFBE55}
+  .n-red{background:var(--red-l);color:var(--red-t);border:1.5px solid #FCA5A5}
+  .n-info .notice-title{color:var(--blue-t)}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;padding:4px 10px;border-radius:20px;margin-bottom:14px}
+  .pill .ti{font-size:13px}
+  .pill-blue{background:var(--blue-l);color:var(--blue-t)}
+  .pill-green{background:var(--green-l);color:var(--green-t)}
+  .pill-amber{background:var(--amber-l);color:var(--amber-t)}
+  .cl-item{display:flex;gap:12px;align-items:flex-start;padding:14px;background:var(--surface2);border-radius:12px;margin-bottom:8px}
+  .cl-num{width:24px;height:24px;border-radius:50%;background:var(--blue-l);color:var(--blue-t);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .cl-num .ti{font-size:13px}
+  .cl-num.done{background:var(--green-l);color:var(--green-t)}
+  .cl-body{font-size:14px;font-weight:700;color:var(--t1)}
+  .cl-sub{font-size:13px;color:var(--t2);font-weight:500;margin-top:2px}
+  .copy-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:12px;background:var(--green-l);color:var(--green-t);border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:800;margin-bottom:8px;transition:opacity .12s}
+  .copy-btn .ti{font-size:18px}
+  .copy-btn:active{opacity:.75}
+  .copy-btn.done{background:var(--green);color:#fff}
+  .danger-box{background:var(--red-l);border:2px solid var(--red);border-radius:16px;padding:18px 20px;margin-bottom:12px;animation:pb 1.2s ease-in-out infinite}
+  @keyframes pb{0%,100%{border-color:var(--red)}50%{border-color:#F9A9B0}}
+  .danger-title{font-size:16px;font-weight:800;color:var(--red-t);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .danger-title .ti{font-size:18px}
+  .danger-body{font-size:14px;color:var(--red-t);line-height:1.6;font-weight:600}
+
+  /* ── HISTORY ── */
+  .hist-item{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid var(--border);font-size:14px}
+  .hist-item:last-child{border-bottom:none}
+  .hist-date{flex:1;color:var(--t2);font-weight:600}
+  .hist-tag{font-size:12px;font-weight:800;padding:3px 9px;border-radius:6px}
+  .ht-office{background:var(--blue-l);color:var(--blue-t)}
+  .ht-home{background:var(--green-l);color:var(--green-t)}
+  .hist-h{font-weight:800;color:var(--t1)}
+  .hist-edit-btn{background:none;border:none;cursor:pointer;color:var(--t3);font-size:18px;padding:2px;display:flex;align-items:center}
+  .hist-edit-btn:hover{color:var(--t1)}
+  .stat-row{display:flex;gap:10px;margin-bottom:12px}
+  .stat-box{flex:1;background:var(--surface);border-radius:12px;padding:16px}
+  .stat-lbl{font-size:12px;font-weight:700;color:var(--t2);margin-bottom:4px}
+  .stat-val{font-size:24px;font-weight:800;color:var(--t1)}
+
+  /* ── SETTINGS ── */
+  .set-row{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+  .set-row label{font-size:14px;font-weight:700;color:var(--t2);min-width:36px}
+  .set-row input[type=time]{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:12px;background:var(--surface2);color:var(--t1);font-size:16px;font-weight:800;font-family:inherit;outline:none}
+
+  /* ── TOAST ── */
+  #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(25,31,40,.92);color:#fff;padding:12px 22px;border-radius:24px;font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;z-index:999}
+  #toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header" id="header">
+  <div class="header-left">
+    <button class="back-btn" id="back-btn" style="display:none" onclick="goBack()" aria-label="이전">
+      <span class="ico" id="ico-back"></span>
+    </button>
+    <div class="header-text">
+      <div class="header-date" id="hdate"></div>
+      <div class="header-title">
+        <span id="htitle">출퇴근 관리</span>
+      </div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" id="hist-btn" onclick="goScreen('history')" aria-label="기록">
+      <span class="ico" id="ico-cal"></span>
+    </button>
+    <button class="icon-btn" id="settings-icon-btn" onclick="goScreen('settings')" aria-label="설정">
+      <span class="ico" id="ico-settings"></span>
+    </button>
+  </div>
+</div>
+
+<!-- SCREENS -->
+<div id="screen-home" class="screen active">
+  <div class="body"><div id="mc"></div></div>
+</div>
+
+<div id="screen-transit" class="screen">
+  <div class="body"><div id="transit-content"></div></div>
+</div>
+
+<div id="screen-history" class="screen">
+  <div class="body">
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-lbl">이번 주 총 근무</div><div class="stat-val" id="wt">—</div></div>
+      <div class="stat-box"><div class="stat-lbl">목표까지</div><div class="stat-val" id="wr">—</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">최근 7일</div>
+      <div id="hist-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-settings" class="screen">
+  <div class="body">
+    <div class="card">
+      <div class="card-title">기본 출근 시간</div>
+      <div class="time-wrap"><input type="time" id="def-time" value="10:00" onchange="saveDef()"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">알림</div>
+      <div id="notif-rows">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:2px">알림 전체</div>
+            <div style="font-size:13px;color:var(--t2);font-weight:500">모든 알림을 켜거나 꺼요</div>
+          </div>
+          <button class="toggle-btn" id="toggle-master" onclick="toggleNotif('master')" aria-label="알림 전체 토글"></button>
+        </div>
+        <div style="height:0.5px;background:var(--border);margin-bottom:16px"></div>
+        <div class="notif-row" id="row-checkin">
+          <div class="notif-info">
+            <div class="notif-name">출근 체크</div>
+            <div class="notif-desc">10시에 출근을 안 했을 때</div>
+          </div>
+          <button class="toggle-btn" id="toggle-checkin" onclick="toggleNotif('checkin')" aria-label="출근 체크 알림 토글"></button>
+        </div>
+        <div class="notif-row" id="row-transit">
+          <div class="notif-info">
+            <div class="notif-name">재택전환 가능</div>
+            <div class="notif-desc">코어타임 5시간 달성 시</div>
+          </div>
+          <button class="toggle-btn" id="toggle-transit" onclick="toggleNotif('transit')" aria-label="재택전환 알림 토글"></button>
+        </div>
+        <div class="notif-row" id="row-done">
+          <div class="notif-info">
+            <div class="notif-name">퇴근 가능</div>
+            <div class="notif-desc">8시간 근무 완료 시</div>
+          </div>
+          <button class="toggle-btn" id="toggle-done" onclick="toggleNotif('done')" aria-label="퇴근 알림 토글"></button>
+        </div>
+        <div class="notif-row" id="row-remote" style="margin-bottom:0">
+          <div class="notif-info">
+            <div class="notif-name">재근무 시작</div>
+            <div class="notif-desc">재택전환 30분 후 미시작 시</div>
+          </div>
+          <button class="toggle-btn" id="toggle-remote" onclick="toggleNotif('remote')" aria-label="재근무 알림 토글"></button>
+        </div>
+        <div id="notif-permission-hint" style="display:none;margin-top:14px;padding:12px 14px;background:var(--amber-l);border:1.5px solid #FFBE55;border-radius:12px;font-size:13px;font-weight:600;color:var(--amber-t)">
+          알림을 켜려면 권한이 필요해요. 위 토글을 누르면 권한을 요청해요.
+        </div>
+        <div id="notif-ios-hint" style="display:none;margin-top:12px;padding:12px 14px;background:var(--blue-l);border:1.5px solid #93C5FD;border-radius:12px;font-size:13px;font-weight:500;color:var(--blue-t);line-height:1.6">
+          홈 화면에 추가하면 백그라운드 알림도 받을 수 있어요.<br>사파리 → 공유 → 홈 화면에 추가
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">근무 기록 수정</div>
+      <div id="set-hist-list"></div>
+      <div id="edit-form" style="display:none;padding-top:14px;border-top:1px solid var(--border);margin-top:12px">
+        <div class="set-row"><label>출근</label><input type="time" id="e-in"></div>
+        <div class="set-row"><label>퇴근</label><input type="time" id="e-out"></div>
+        <div class="btn-row">
+          <button class="btn btn-gray" onclick="cancelEdit()">취소</button>
+          <button class="btn btn-blue" onclick="saveEdit()">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const LUNCH=60,CORE=300,TOTAL=480;
+const S={
+  workType:'office',phase:'idle',
+  checkIn:null,transitStart:null,remoteStart:null,
+  officeMins:0,timer:null,slackDone:false,
+  editIdx:null,history:[],
+  def:{time:'10:00'},
+  currentScreen:'home',prevScreen:'home'
+};
+try{S.history=JSON.parse(localStorage.getItem('wh')||'[]')}catch(e){}
+try{const d=JSON.parse(localStorage.getItem('whd')||'null');if(d)S.def=d}catch(e){}
+
+function persist(){try{localStorage.setItem('wh',JSON.stringify(S.history.slice(-30)))}catch(e){}}
+function now(){return new Date()}
+function fmt(d){if(!d)return'--:--';return d.toTimeString().slice(0,5)}
+function hm(m){m=Math.round(Math.max(0,m));const h=Math.floor(m/60),mn=m%60;return h>0?`${h}시간 ${mn}분`:`${mn}분`}
+function addM(d,m){return new Date(d.getTime()+m*60000)}
+function diffM(a,b){return Math.max(0,Math.floor((b.getTime()-a.getTime())/60000))}
+function t2d(s){if(!s)return null;const[h,m]=s.split(':').map(Number);const d=new Date();d.setHours(h,m,0,0);return d}
+
+function initDate(){
+  const d=now(),days=['일','월','화','수','목','금','토'];
+  document.getElementById('hdate').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
+}
+
+// ── SCREEN ROUTER ──
+function goScreen(name){
+  S.prevScreen=S.currentScreen;
+  S.currentScreen=name;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  updateHeader();
+  if(name==='history')renderHist();
+  if(name==='settings'){document.getElementById('def-time').value=S.def.time;renderSetHist();}
+}
+
+function goBack(){
+  goScreen(S.prevScreen==='home'?'home':S.prevScreen);
+  if(S.currentScreen==='home'&&S.phase==='transit-pending'){
+    S.phase='working';S.officeMins=0;startTick();render();
+  }
+}
+
+function updateHeader(){
+  const s=S.currentScreen,ph=S.phase;
+  const title=document.getElementById('htitle');
+  const backBtn=document.getElementById('back-btn');
+  const histBtn=document.getElementById('hist-btn');
+  const settingsBtn=document.getElementById('settings-icon-btn');
+  const hdate=document.getElementById('hdate');
+
+  backBtn.style.display='none';
+  histBtn.style.display='flex';
+  settingsBtn.style.display='flex';
+
+  if(s==='home'){
+    initDate();
+    histBtn.style.display='flex';
+    settingsBtn.style.display='flex';
+    const labels={idle:'출퇴근 관리',working:S.workType==='office'?'사무실 근무 중':'재택 근무 중',transit:'이동 중',remote:'재택 근무 중',done:'오늘 근무 완료'};
+    title.textContent=labels[ph]||'출퇴근 관리';
+  } else if(s==='transit'){
+    hdate.textContent='';
+    title.textContent='재택전환 준비 중';
+    backBtn.style.display='flex';
+    histBtn.style.display='none';
+    settingsBtn.style.display='none';
+  } else if(s==='history'){
+    hdate.textContent='';
+    title.textContent='근무 기록';
+    backBtn.style.display='flex';
+    histBtn.style.display='none';
+    settingsBtn.style.display='none';
+  } else if(s==='settings'){
+    hdate.textContent='';
+    title.textContent='설정';
+    backBtn.style.display='flex';
+    histBtn.style.display='none';
+    settingsBtn.style.display='none';
+  }
+}
+
+function saveDef(){
+  S.def.time=document.getElementById('def-time').value||'10:00';
+  try{localStorage.setItem('whd',JSON.stringify(S.def))}catch(e){}
+  showToast('저장됐어요');
+}
+
+function setWT(t){S.workType=t;render()}
+
+function calcEff(){
+  if(!S.checkIn)return 0;
+  const raw=S.phase==='working'?diffM(S.checkIn,now()):S.officeMins;
+  return Math.max(0,raw-LUNCH);
+}
+function calcTotal(){
+  if(!S.checkIn)return 0;
+  if(S.phase==='working')return Math.max(0,diffM(S.checkIn,now())-LUNCH);
+  if(S.phase==='transit'||S.phase==='transit-pending')return Math.max(0,S.officeMins-LUNCH);
+  if(S.phase==='remote'&&S.remoteStart)return Math.max(0,S.officeMins-LUNCH)+diffM(S.remoteStart,now());
+  return 0;
+}
+
+function doCheckIn(tStr,wt){S.checkIn=t2d(tStr);S.workType=wt;S.phase='working';S.officeMins=0;startTick();render();updateHeader()}
+function cancelCheckIn(){S.phase='idle';S.checkIn=null;clearInterval(S.timer);render();updateHeader()}
+function startTick(){clearInterval(S.timer);S.timer=setInterval(()=>render(),30000)}
+
+function showTransit(){
+  S.officeMins=diffM(S.checkIn,now());
+  S.phase='transit-pending';
+  S.slackDone=false;
+  goScreen('transit');
+  renderTransit();
+}
+
+function copySlack(){
+  navigator.clipboard.writeText('재전하겠습니다~').then(()=>{
+    S.slackDone=true;renderTransit();showToast('클립보드에 복사됐어요');
+  });
+}
+
+function confirmTransit(){
+  if(confirm('하이웍스에서 "외출" 버튼 누르셨나요?\n\n아니요를 누르면 재택전환이 취소됩니다.')){
+    S.phase='idle';S.checkIn=null;clearInterval(S.timer);
+    goScreen('home');render();
+    showToast('재택전환 완료! 집 도착 후 출근을 다시 찍어주세요');
+  }
+}
+
+function cancelTransit(){
+  S.phase='working';S.officeMins=0;startTick();
+  goScreen('home');render();
+}
+
+function startRemote(){S.remoteStart=now();S.phase='remote';startTick();render();updateHeader()}
+function doCheckOut(){
+  const total=calcTotal();
+  S.history.push({date:now().toLocaleDateString('ko-KR'),type:S.workType,checkIn:fmt(S.checkIn),checkOut:fmt(now()),total});
+  persist();S.phase='done';clearInterval(S.timer);render();updateHeader();
+}
+function resetDay(){S.phase='idle';S.checkIn=null;S.transitStart=null;S.remoteStart=null;S.officeMins=0;clearInterval(S.timer);render();updateHeader()}
+
+function render(){
+  const el=document.getElementById('mc');if(!el)return;
+  const total=calcTotal(),eff=calcEff();
+  const remain=Math.max(0,TOTAL-total);
+  const coreRemain=Math.max(0,CORE-eff);
+  const canTransit=S.workType==='office'&&eff>=CORE;
+  const done=total>=TOTAL;
+  const hr=now().getHours();
+  const wt=S.workType;
+  let coTime='--:--';
+  if(S.checkIn&&S.phase==='working')coTime=fmt(addM(S.checkIn,TOTAL+LUNCH));
+  if(S.phase==='remote'&&S.remoteStart)coTime=fmt(addM(S.remoteStart,remain));
+  let o='';
+
+  if(S.phase==='idle'){
+    const dt=S.def.time||'10:00';
+    if(hr>=10)o+=`<div class="notice n-warn"><div class="notice-title">출근 체크 했나요?</div>10시가 지났어요. 하이웍스 확인해주세요.</div>`;
+    else if(hr>=7)o+=`<div class="notice n-info"><div class="notice-title">출근 준비 됐나요?</div>출근 시간을 확인하고 출근 시작을 눌러주세요.</div>`;
+    else o+=`<div class="notice n-info"><div class="notice-title">오늘도 화이팅!</div>출근 시간이 되면 알려드릴게요.</div>`;
+    o+=`<div class="card">
+      <div class="card-title">근무 유형</div>
+      <div class="type-row">
+        <button class="type-btn${wt==='office'?' on':''}" onclick="setWT('office')">${ic('building')}사무실</button>
+        <button class="type-btn${wt==='home'?' on':''}" onclick="setWT('home')">${ic('home')}재택</button>
+      </div>
+      <div class="field-label">출근 시간</div>
+      <div class="time-wrap"><input type="time" id="ci-t" value="${dt}"></div>
+      <button class="btn btn-blue" onclick="doCheckIn(document.getElementById('ci-t').value,S.workType)">${ic('player-play')} 출근 시작</button>
+    </div>`;
+  } else if(S.phase==='working'){
+    o+=`<div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <span class="pill${wt==='office'?' pill-blue':' pill-green'}">${ic(wt==='office'?'building':'home')}${wt==='office'?'사무실':'재택'}</span>
+        <button class="btn-ghost" style="width:auto;padding:6px 10px;font-size:13px" onclick="cancelCheckIn()">출근 취소</button>
+      </div>
+      <div class="big-num">${hm(total)}</div>
+      <div class="big-sub">출근 ${fmt(S.checkIn)} · 퇴근 예정 <strong>${coTime}</strong></div>
+      <div class="prog-wrap"><div class="prog-head"><span>총 근무</span><span>${(total/60).toFixed(1)}h / 8h</span></div><div class="prog-track"><div class="prog-fill pf-blue" style="width:${Math.min(100,total/480*100)}%"></div></div></div>`;
+    if(wt==='office')o+=`<div class="prog-wrap"><div class="prog-head"><span>코어타임 (점심 제외)</span><span>${(eff/60).toFixed(1)}h / 5h</span></div><div class="prog-track"><div class="prog-fill pf-green" style="width:${Math.min(100,eff/300*100)}%"></div></div></div>`;
+    o+=`</div>`;
+    if(done)o+=`<div class="notice n-ok"><div class="notice-title">8시간 완료! 퇴근하세요</div>하이웍스에서 퇴근 체크를 잊지 마세요.</div>`;
+    else if(wt==='office'&&canTransit)o+=`<div class="notice n-ok"><div class="notice-title">재택전환 가능!</div>코어타임 5시간을 채웠어요.</div>`;
+    else if(wt==='office'&&coreRemain>0)o+=`<div class="notice n-info"><div class="notice-title">재택전환까지 ${hm(coreRemain)} 남았어요</div>${fmt(addM(S.checkIn,CORE+LUNCH))}부터 가능해요.</div>`;
+    if(wt==='office')o+=`<button class="btn btn-amber${canTransit?'':' btn-dim'}" onclick="showTransit()">${ic('home')} 재택전환 시작하기</button>`;
+    if(done){
+      o+=`<button class="btn btn-hiworks" style="margin-top:8px;position:relative" onclick="window.open('https://hiworks.com')">${ic('external-link')} 하이웍스 열기 <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:var(--green);color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px">퇴근 가능</span></button>`;
+    } else {
+      o+=`<button class="btn btn-hiworks" style="margin-top:8px;position:relative" onclick="window.open('https://hiworks.com')">${ic('external-link')} 하이웍스 열기 <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:var(--t3);color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px">퇴근 불가</span></button>`;
+    }
+  } else if(S.phase==='transit'){
+    const tm=diffM(S.transitStart||now(),now());
+    o+=`<div class="danger-box"><div class="danger-title">${ic('alert-triangle')} 집 도착 후 바로 근무 시작!</div><div class="danger-body">하이웍스에서 <strong>"근무"</strong> 버튼을 눌러야 해요.<br>이동 중 ${hm(tm)} 경과 · 남은 근무 <strong>${hm(remain)}</strong></div></div>
+    <div class="card"><div class="big-sub" style="margin-bottom:0">사무실 근무 <strong>${hm(Math.max(0,S.officeMins-LUNCH))}</strong> 완료 · 집에서 <strong>${hm(remain)}</strong> 더 필요</div></div>
+    <button class="btn btn-blue" onclick="window.open('https://hiworks.com')">${ic('external-link')} 하이웍스 열기 (근무 클릭)</button>
+    <button class="btn btn-green" onclick="startRemote()">${ic('home')} 재근무 시작</button>`;
+  } else if(S.phase==='remote'){
+    const rm=diffM(S.remoteStart,now());
+    o+=`<div class="card">
+      <span class="pill pill-green">${ic('home')} 재택 근무 중</span>
+      <div class="big-num">${hm(total)}</div>
+      <div class="big-sub">재택 ${hm(rm)} 근무 중 · 퇴근 예정 <strong>${coTime}</strong></div>
+      <div class="prog-wrap"><div class="prog-head"><span>총 근무</span><span>${(total/60).toFixed(1)}h / 8h</span></div><div class="prog-track"><div class="prog-fill pf-blue" style="width:${Math.min(100,total/480*100)}%"></div></div></div>
+    </div>`;
+    if(done){
+      o+=`<div class="notice n-ok"><div class="notice-title">8시간 완료! 퇴근하세요</div>하이웍스에서 퇴근 체크 잊지 마세요.</div>
+      <button class="btn btn-hiworks" style="position:relative" onclick="window.open('https://hiworks.com')">${ic('external-link')} 하이웍스 열기 <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:var(--green);color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px">퇴근 가능</span></button>`;
+    } else {
+      o+=`<div class="notice n-info"><div class="notice-title">${hm(remain)} 더 근무하면 퇴근!</div>${coTime}에 퇴근 가능해요.</div>
+      <button class="btn btn-hiworks" style="position:relative" onclick="window.open('https://hiworks.com')">${ic('external-link')} 하이웍스 열기 <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:var(--t3);color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px">퇴근 불가</span></button>`;
+    }
+  } else if(S.phase==='done'){
+    const last=S.history[S.history.length-1];
+    o+=`<div class="card">
+      <span class="pill pill-green">${ic('check')} 오늘 근무 완료</span>
+      <div class="big-num">${last?hm(last.total):''}</div>
+      <div class="big-sub">출근 ${last?.checkIn} · 퇴근 ${last?.checkOut}</div>
+    </div>
+    <button class="btn btn-gray" onclick="resetDay()">${ic('refresh')} 새 근무일 시작</button>`;
+  }
+  el.innerHTML=o;
+}
+
+function renderTransit(){
+  const el=document.getElementById('transit-content');if(!el)return;
+  let o=`<div class="card">
+    <span class="pill pill-amber">${ic('home')} 재택전환 준비 중</span>
+    <div style="font-size:14px;color:var(--t2);font-weight:600;margin-bottom:14px">순서대로 진행 후 완료해주세요.</div>
+    <div class="cl-item">
+      <div class="cl-num${S.slackDone?' done':''}">${ic(S.slackDone?'check':'hash')}</div>
+      <div><div class="cl-body">슬랙 메시지 전송</div><div class="cl-sub">보험사업_기획_디자인_개발 채널</div></div>
+    </div>
+    <button class="copy-btn${S.slackDone?' done':''}" onclick="copySlack()">
+      <span style="display:flex;align-items:center;gap:8px">${ic(S.slackDone?'check':'copy')}${S.slackDone?'복사됨 — 슬랙에 붙여넣기하세요':'"재전하겠습니다~" 복사하기'}</span>
+      ${ic('chevron-right')}
+    </button>
+    <div class="cl-item">
+      <div class="cl-num" style="background:var(--blue-l);color:var(--blue-t)">2</div>
+      <div><div class="cl-body">하이웍스에서 "외출" 클릭</div><div class="cl-sub">아래 버튼으로 바로 이동</div></div>
+    </div>
+  </div>
+  <button class="btn btn-hiworks" onclick="window.open('https://hiworks.com')">${ic('external-link')} 하이웍스 열기 → 외출 누르기</button>
+  <button class="btn btn-amber" onclick="confirmTransit()">${ic('check')} 하이웍스 외출 눌렀어요</button>
+  <button class="btn-ghost" onclick="cancelTransit()">${ic('x')} 취소</button>`;
+  el.innerHTML=o;
+}
+
+function renderHist(){
+  const el=document.getElementById('hist-list');if(!el)return;
+  const rec=S.history.slice(-7).reverse();
+  if(!rec.length){el.innerHTML=`<div style="color:var(--t2);font-size:14px;padding:8px 0;font-weight:600">기록이 없어요</div>`;document.getElementById('wt').textContent='—';document.getElementById('wr').textContent='—';return}
+  el.innerHTML=rec.map(r=>`<div class="hist-item"><span class="hist-date">${r.date}</span><span class="hist-tag ${r.type==='office'?'ht-office':'ht-home'}">${r.type==='office'?'사무실':'재택'}</span><span class="hist-h">${(r.total/60).toFixed(1)}h</span></div>`).join('');
+  const wm=rec.reduce((s,r)=>s+(r.total||0),0);
+  document.getElementById('wt').textContent=(wm/60).toFixed(1)+'h';
+  document.getElementById('wr').textContent=Math.max(0,40-wm/60).toFixed(1)+'h';
+}
+
+function renderSetHist(){
+  const el=document.getElementById('set-hist-list');if(!el)return;
+  const rec=S.history.slice(-7).reverse();
+  if(!rec.length){el.innerHTML=`<div style="color:var(--t2);font-size:14px;padding:8px 0;font-weight:600">기록이 없어요</div>`;return}
+  el.innerHTML=rec.map((r,i)=>{const ri=S.history.length-1-i;return`<div class="hist-item"><span class="hist-date">${r.date}</span><span class="hist-tag ${r.type==='office'?'ht-office':'ht-home'}">${r.type==='office'?'사무실':'재택'}</span><span class="hist-h">${(r.total/60).toFixed(1)}h</span><button class="hist-edit-btn" onclick="openEdit(${ri})" aria-label="수정">${ic('edit')}</button></div>`}).join('');
+}
+function openEdit(i){S.editIdx=i;const r=S.history[i];document.getElementById('e-in').value=r.checkIn||'';document.getElementById('e-out').value=r.checkOut||'';document.getElementById('edit-form').style.display='block'}
+function cancelEdit(){S.editIdx=null;document.getElementById('edit-form').style.display='none'}
+function saveEdit(){
+  if(S.editIdx===null)return;
+  const ci=document.getElementById('e-in').value,co=document.getElementById('e-out').value;
+  if(ci&&co){const[ch,cm]=ci.split(':').map(Number),[oh,om]=co.split(':').map(Number);S.history[S.editIdx].checkIn=ci;S.history[S.editIdx].checkOut=co;S.history[S.editIdx].total=Math.max(0,(oh*60+om)-(ch*60+cm)-LUNCH);persist()}
+  cancelEdit();renderSetHist();showToast('수정됐어요');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+initDate();
+render();
+updateHeader();
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const backSpan = document.getElementById('ico-back');
+  if(backSpan) backSpan.innerHTML = ICONS['arrow-left'];
+  const calSpan = document.getElementById('ico-cal');
+  if(calSpan) calSpan.innerHTML = ICONS['calendar'];
+  const setSpan = document.getElementById('ico-settings');
+  if(setSpan) setSpan.innerHTML = ICONS['settings'];
+});
+</script>
+
+<script>
+// ── NOTIFICATION STATE ──
+const NP = {
+  master: true,
+  checkin: true,
+  transit: true,
+  done: true,
+  remote: true
+};
+try { const s=JSON.parse(localStorage.getItem('wh_notif')||'null'); if(s) Object.assign(NP,s); } catch(e){}
+function saveNP(){ try{localStorage.setItem('wh_notif',JSON.stringify(NP))}catch(e){} }
+
+function notifEnabled(key){ return NP.master && NP[key] && Notification.permission==='granted'; }
+
+function updateToggleUI(){
+  const perm = Notification.permission;
+  const hint = document.getElementById('notif-permission-hint');
+  const iosHint = document.getElementById('notif-ios-hint');
+  if(!hint) return;
+  if(perm==='default') hint.style.display='block';
+  else hint.style.display='none';
+  if(iosHint && perm==='granted' && /iPhone|iPad/i.test(navigator.userAgent) && !navigator.standalone){
+    iosHint.style.display='block';
+  }
+  ['master','checkin','transit','done','remote'].forEach(k=>{
+    const btn = document.getElementById('toggle-'+k);
+    if(!btn) return;
+    const isOn = k==='master' ? NP.master : (NP.master && NP[k]);
+    btn.classList.toggle('on', isOn && (perm==='granted'||perm==='default'));
+    // disable sub-toggles if master is off
+    if(k!=='master') btn.disabled = !NP.master;
+  });
+}
+
+async function toggleNotif(key){
+  if(Notification.permission==='default'){
+    const r = await Notification.requestPermission();
+    if(r!=='granted'){ showToast('알림 권한이 거부됐어요. 설정에서 허용해주세요'); updateToggleUI(); return; }
+    await registerSW();
+    startNotifScheduler();
+  }
+  if(Notification.permission==='denied'){ showToast('설정 > 앱에서 알림을 먼저 허용해주세요'); return; }
+
+  NP[key] = !NP[key];
+  if(key==='master' && NP.master){
+    // turning master on → start scheduler
+    startNotifScheduler();
+    showToast('알림이 켜졌어요');
+  } else if(key==='master' && !NP.master){
+    clearInterval(notifTimer);
+    showToast('알림이 꺼졌어요');
+  } else {
+    showToast(NP[key] ? '알림이 켜졌어요' : '알림이 꺼졌어요');
+  }
+  saveNP();
+  updateToggleUI();
+}
+
+function sendNotif(title,body,tag){
+  if(Notification.permission!=='granted') return;
+  if(navigator.serviceWorker&&navigator.serviceWorker.controller){
+    navigator.serviceWorker.controller.postMessage({type:'NOTIFY',title,body,tag});
+  } else {
+    try{new Notification(title,{body,tag})}catch(e){}
+  }
+}
+
+let notifTimer=null, lastTag='';
+function startNotifScheduler(){
+  clearInterval(notifTimer);
+  if(!NP.master || Notification.permission!=='granted') return;
+  notifTimer=setInterval(checkNotifs,60000);
+  checkNotifs();
+}
+function checkNotifs(){
+  if(!NP.master || Notification.permission!=='granted') return;
+  const h=now().getHours(),m=now().getMinutes(),ph=S.phase;
+  if(notifEnabled('checkin')&&ph==='idle'&&h===10&&m===0)
+    sendNotif('출근 체크 해주세요 ⏰','10시가 됐어요. 하이웍스에서 출근을 찍어주세요!','checkin');
+  if(notifEnabled('transit')&&ph==='working'&&S.workType==='office'){
+    const eff=calcEff();
+    if(eff>=CORE&&eff<CORE+2&&lastTag!=='transit-ready'){lastTag='transit-ready';sendNotif('재택전환 가능! 🏠','코어타임 5시간 완료. 재택전환할 수 있어요.','transit-ready')}
+  }
+  if(notifEnabled('done')&&(ph==='working'||ph==='remote')&&S.checkIn){
+    const total=calcTotal();
+    if(total>=TOTAL&&total<TOTAL+2&&lastTag!=='done'){lastTag='done';sendNotif('퇴근하세요! 🎉','8시간 근무 완료. 하이웍스에서 퇴근을 찍어주세요.','done')}
+  }
+  if(notifEnabled('remote')&&ph==='transit'&&S.transitStart){
+    const el=diffM(S.transitStart,now());
+    if(el>=30&&el<32&&lastTag!=='remote-remind'){lastTag='remote-remind';sendNotif('집 도착했나요? 🏠','하이웍스에서 "근무" 버튼을 누르고 재근무를 시작해주세요!','remote-remind')}
+  }
+}
+
+async function registerSW(){
+  if(!('serviceWorker' in navigator)) return;
+  const swCode=`self.addEventListener('message',e=>{if(e.data&&e.data.type==='NOTIFY'){self.registration.showNotification(e.data.title,{body:e.data.body,tag:e.data.tag||'default',icon:''})}});self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(cls=>{if(cls.length)return cls[0].focus();return clients.openWindow('/')}))});`;
+  try{
+    const blob=new Blob([swCode],{type:'application/javascript'});
+    const url=URL.createObjectURL(blob);
+    await navigator.serviceWorker.register(url,{scope:'/'});
+    await navigator.serviceWorker.ready;
+  }catch(e){}
+}
+
+window.addEventListener('load',async()=>{
+  if(Notification.permission==='granted'){ await registerSW(); startNotifScheduler(); }
+  updateToggleUI();
+});
+// Update UI when settings panel is opened
+const _origToggleSettings = typeof toggleSettings==='function' ? toggleSettings : null;
+document.addEventListener('DOMContentLoaded',()=>{
+  const sbtn=document.getElementById('sbtn');
+  if(sbtn){
+    const orig=sbtn.onclick;
+    sbtn.onclick=function(e){ if(orig)orig.call(this,e); setTimeout(updateToggleUI,50); };
+  }
+});
+</script>
+</body>
+</html>
