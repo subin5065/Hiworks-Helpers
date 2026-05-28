@@ -102,7 +102,7 @@ function ic(name,extraStyle=''){
   .time-wrap input[type=time]:focus{border-color:var(--blue)}
   .time-picker{display:flex;align-items:center;gap:0;border:1.5px solid var(--border);border-radius:12px;background:var(--surface2);overflow:hidden;margin-bottom:16px;transition:border-color .15s}
   .time-picker:focus-within{border-color:var(--blue)}
-  .time-picker select{flex:1;padding:14px 8px;border:none;background:transparent;color:var(--t1);font-size:26px;font-weight:800;font-family:inherit;outline:none;text-align:center;-webkit-appearance:none;appearance:none;cursor:pointer}
+  .time-picker select{flex:1;padding:14px 0;border:none;background:transparent;color:var(--t1);font-size:26px;font-weight:800;font-family:inherit;outline:none;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none;cursor:pointer;min-width:0;width:0}
   .time-picker-sep{font-size:28px;font-weight:800;color:var(--t1);padding:0 2px;user-select:none}
 
   /* ── BUTTONS ── */
@@ -191,7 +191,7 @@ function ic(name,extraStyle=''){
 
   /* ── TOAST ── */
   /* BOTTOM SHEET */
-  .bs-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;opacity:0;transition:opacity .25s;pointer-events:none}
+  .bs-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.15);z-index:200;opacity:0;transition:opacity .25s;pointer-events:none}
   .bs-overlay.show{opacity:1;pointer-events:all}
   .bs-sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:390px;background:var(--surface);border-radius:20px 20px 0 0;z-index:201;padding:0 0 env(safe-area-inset-bottom,16px);transition:transform .3s cubic-bezier(.32,1,.28,1)}
   .bs-sheet.show{transform:translateX(-50%) translateY(0)}
@@ -200,7 +200,7 @@ function ic(name,extraStyle=''){
   .bs-sub{font-size:14px;color:var(--t2);font-weight:500;padding:0 20px;margin-bottom:20px;line-height:1.5}
   .bs-time-wrap{padding:0 20px;margin-bottom:8px}
   .bs-time-pick{display:flex;align-items:center;justify-content:center;border:1.5px solid var(--border);border-radius:12px;background:var(--surface2);overflow:hidden}
-  .bs-time-pick select{flex:1;padding:14px 8px;border:none;background:transparent;color:var(--t1);font-size:28px;font-weight:800;font-family:inherit;outline:none;text-align:center;-webkit-appearance:none;appearance:none;cursor:pointer}
+  .bs-time-pick select{flex:1;padding:14px 0;border:none;background:transparent;color:var(--t1);font-size:28px;font-weight:800;font-family:inherit;outline:none;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none;cursor:pointer;min-width:0;width:0}
   .bs-time-pick-sep{font-size:30px;font-weight:800;color:var(--t1);padding:0 4px;user-select:none}
   .bs-now-hint{font-size:12px;font-weight:600;color:var(--t2);text-align:center;margin-bottom:20px;padding:0 20px}
   .bs-actions{padding:0 20px 8px;display:flex;flex-direction:column;gap:8px}
@@ -501,10 +501,10 @@ function initCiPicker(){
   if(!hEl||!mEl)return;
   hEl.innerHTML='';mEl.innerHTML='';
   for(let i=0;i<24;i++){const o=document.createElement('option');o.value=i;o.textContent=String(i).padStart(2,'0');hEl.appendChild(o);}
-  for(let i=0;i<60;i+=5){const o=document.createElement('option');o.value=i;o.textContent=String(i).padStart(2,'0');mEl.appendChild(o);}
+  for(let i=0;i<60;i++){const o=document.createElement('option');o.value=i;o.textContent=String(i).padStart(2,'0');mEl.appendChild(o);}
   const parts=(S.def.time||'10:00').split(':');
   hEl.value=parseInt(parts[0]);
-  mEl.value=Math.round(parseInt(parts[1])/5)*5%60;
+  mEl.value=parseInt(parts[1]);
   // update display immediately after populating options
   const el=document.getElementById('ci-display-text');
   if(el) el.textContent=String(hEl.value).padStart(2,'0')+':'+String(mEl.value).padStart(2,'0');
@@ -514,10 +514,10 @@ function initDefPicker(){
   if(!hEl||!mEl)return;
   hEl.innerHTML='';mEl.innerHTML='';
   for(let i=0;i<24;i++){const o=document.createElement('option');o.value=i;o.textContent=String(i).padStart(2,'0');hEl.appendChild(o);}
-  for(let i=0;i<60;i+=5){const o=document.createElement('option');o.value=i;o.textContent=String(i).padStart(2,'0');mEl.appendChild(o);}
+  for(let i=0;i<60;i++){const o=document.createElement('option');o.value=i;o.textContent=String(i).padStart(2,'0');mEl.appendChild(o);}
   const parts=(S.def.time||'10:00').split(':');
   hEl.value=parseInt(parts[0]);
-  mEl.value=Math.round(parseInt(parts[1])/5)*5;
+  mEl.value=parseInt(parts[1]);
 }
 let clockTick=null;
 function startClockTick(){ /* no-op: using def time */ }
@@ -758,11 +758,12 @@ updateHeader();
 let bsCallback = null;
 let bsTickTimer = null;
 
-function openBS(title, sub, confirmLabel, defaultTime, callback){
+function openBS(title, sub, confirmLabel, defaultTime, callback, extraHTML){
   bsCallback = callback;
   document.getElementById('bs-title').textContent = title;
   document.getElementById('bs-sub').textContent = sub;
   document.getElementById('bs-confirm-btn').textContent = confirmLabel;
+  document.getElementById('bs-extra').innerHTML = extraHTML || '';
 
   // populate selects
   const hEl = document.getElementById('bs-h');
@@ -826,10 +827,11 @@ function doCheckInFromPicker(){
   }
   openBS(
     '출근 시간 확인',
-    '하이웍스에 찍은 시간과 동일하게 설정해주세요.',
+    '하이웍스에서 먼저 출근을 찍고, 찍은 시간을 입력해주세요.',
     '출근 시작',
     defaultTime,
-    (t) => doCheckIn(t, S.workType)
+    (t) => doCheckIn(t, S.workType),
+    `<a href="https://login.office.hiworks.com/microprotect.com" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--t1);font-size:15px;font-weight:800;text-decoration:none">하이웍스 출근 찍으러 가기</a>`
   );
 }
 
@@ -953,7 +955,7 @@ function sendNotif(title,body,tag){
   }
 }
 
-let notifTimer=null, lastTag='';
+let notifTimer=null, lastTag='', lastCheckinTag='';
 function startNotifScheduler(){
   clearInterval(notifTimer);
   if(!NP.master || Notification.permission!=='granted') return;
@@ -963,8 +965,20 @@ function startNotifScheduler(){
 function checkNotifs(){
   if(!NP.master || Notification.permission!=='granted') return;
   const h=now().getHours(),m=now().getMinutes(),ph=S.phase;
-  if(notifEnabled('checkin')&&ph==='idle'&&h===10&&m===0)
-    sendNotif('출근 체크 해주세요 ⏰','10시가 됐어요. 하이웍스에서 출근을 찍어주세요!','checkin');
+  // 9:50 ~ 10:00 매분 알림 (idle 상태일 때)
+  if(notifEnabled('checkin')&&ph==='idle'){
+    const totalMin=h*60+m;
+    if(totalMin>=9*60+50&&totalMin<=10*60){
+      const tag='checkin-'+totalMin;
+      if(lastCheckinTag!==tag){
+        lastCheckinTag=tag;
+        if(totalMin<10*60)
+          sendNotif('출근 준비하세요 ⏰',`${h}시 ${m}분이에요. 10시 출근까지 ${10*60-totalMin}분 남았어요!`,tag);
+        else
+          sendNotif('출근 체크 해주세요 ⏰','10시가 됐어요. 하이웍스에서 출근을 찍어주세요!',tag);
+      }
+    }
+  }
   if(notifEnabled('transit')&&ph==='working'&&S.workType==='office'){
     const eff=calcEff();
     if(eff>=CORE&&eff<CORE+2&&lastTag!=='transit-ready'){lastTag='transit-ready';sendNotif('재택전환 가능! 🏠','코어타임 5시간 완료. 재택전환할 수 있어요.','transit-ready')}
@@ -1021,6 +1035,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   <div class="bs-now-hint" id="bs-hint"></div>
   <div class="bs-actions">
     <button class="btn btn-blue" id="bs-confirm-btn" onclick="confirmBS()"></button>
+    <div id="bs-extra"></div>
     <button class="btn-ghost" onclick="closeBS()">취소</button>
   </div>
 </div>
