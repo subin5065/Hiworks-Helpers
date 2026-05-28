@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>출퇴근 관리</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
 .ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -102,7 +104,7 @@ function ic(name,extraStyle=''){
   .time-wrap input[type=time]:focus{border-color:var(--blue)}
   .time-picker{display:flex;align-items:center;gap:0;border:1.5px solid var(--border);border-radius:12px;background:var(--surface2);overflow:hidden;margin-bottom:16px;transition:border-color .15s}
   .time-picker:focus-within{border-color:var(--blue)}
-  .time-picker select{flex:1;padding:14px 0;border:none;background:transparent;color:var(--t1);font-size:26px;font-weight:800;font-family:inherit;outline:none;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none;cursor:pointer;min-width:0;width:0}
+  .time-picker select{flex:1;padding:14px 0;border:none;background:transparent;color:var(--t1);font-size:26px;font-weight:800;font-family:inherit;outline:none;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none;cursor:pointer;min-width:0;width:50%;direction:ltr}
   .time-picker-sep{font-size:28px;font-weight:800;color:var(--t1);padding:0 2px;user-select:none}
 
   /* ── BUTTONS ── */
@@ -200,7 +202,7 @@ function ic(name,extraStyle=''){
   .bs-sub{font-size:14px;color:var(--t2);font-weight:500;padding:0 20px;margin-bottom:20px;line-height:1.5}
   .bs-time-wrap{padding:0 20px;margin-bottom:8px}
   .bs-time-pick{display:flex;align-items:center;justify-content:center;border:1.5px solid var(--border);border-radius:12px;background:var(--surface2);overflow:hidden}
-  .bs-time-pick select{flex:1;padding:14px 0;border:none;background:transparent;color:var(--t1);font-size:28px;font-weight:800;font-family:inherit;outline:none;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none;cursor:pointer;min-width:0;width:0}
+  .bs-time-pick select{flex:1;padding:14px 0;border:none;background:transparent;color:var(--t1);font-size:28px;font-weight:800;font-family:inherit;outline:none;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none;cursor:pointer;min-width:0;width:50%;direction:ltr}
   .bs-time-pick-sep{font-size:30px;font-weight:800;color:var(--t1);padding:0 4px;user-select:none}
   .bs-now-hint{font-size:12px;font-weight:600;color:var(--t2);text-align:center;margin-bottom:20px;padding:0 20px}
   .bs-actions{padding:0 20px 8px;display:flex;flex-direction:column;gap:8px}
@@ -547,7 +549,7 @@ function toggleCiPicker(){
       if(txt&&txt.textContent.includes(':')){
         const[h,m]=txt.textContent.split(':').map(Number);
         hEl.value=h;
-        mEl.value=Math.round(m/5)*5%60;
+        mEl.value=m;
       }
     }
     picker.style.display='flex';
