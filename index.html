@@ -600,6 +600,7 @@ function toggleCiPicker(){
 
 function render(){
   const el=document.getElementById('mc');if(!el)return;
+  if(S.phase!=='idle')persistState(); // 매 render마다 상태 저장
   const total=calcTotal(),eff=calcEff();
   const remain=Math.max(0,TOTAL-total);
   const coreRemain=Math.max(0,CORE-eff);
@@ -800,6 +801,10 @@ render();
 updateHeader();
 // 복원된 상태가 working/remote/transit이면 타이머 재시작
 if(S.phase==='working'||S.phase==='remote')startTick();
+// 알림 스케줄러: 권한 있으면 무조건 시작
+if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
+  registerSW().then(()=>startNotifScheduler());
+}
 
 // ── BOTTOM SHEET ──
 let bsCallback = null;
@@ -858,7 +863,7 @@ function confirmBS(){
   const cb = bsCallback;
   bsCallback = null;
   closeBS();
-  if(cb) cb(tStr);
+  if(cb) setTimeout(()=>cb(tStr), 320); // BS 닫힘 애니메이션(300ms) 후 실행
 }
 
 // ── OVERRIDE ACTION FUNCTIONS TO USE BOTTOM SHEET ──
@@ -1007,24 +1012,33 @@ function sendNotif(title,body,tag){
 let notifTimer=null, lastTag='', lastCheckinTag='';
 function startNotifScheduler(){
   clearInterval(notifTimer);
-  if(!NP.master || Notification.permission!=='granted') return;
+  if(Notification.permission!=='granted') return;
   notifTimer=setInterval(checkNotifs,60000);
   checkNotifs();
 }
 function checkNotifs(){
-  if(!NP.master || Notification.permission!=='granted') return;
+  if(Notification.permission!=='granted') return;
+  if(!NP.master) return;
   const h=now().getHours(),m=now().getMinutes(),ph=S.phase;
-  // 9:50 ~ 10:00 매분 알림 (idle 상태일 때)
+  // 설정된 기본 출근 시간 기준: 10분 전 & 정각 알림
   if(notifEnabled('checkin')&&ph==='idle'){
     const totalMin=h*60+m;
-    if(totalMin>=9*60+50&&totalMin<=10*60){
+    const defParts=(S.def.time||'10:00').split(':').map(Number);
+    const defMin=defParts[0]*60+defParts[1];
+    // 10분 전 알림
+    if(totalMin===defMin-10){
+      const tag='checkin-pre-'+totalMin;
+      if(lastCheckinTag!==tag){
+        lastCheckinTag=tag;
+        sendNotif('출근 준비하세요 ⏰',`출근 10분 전이에요. ${defParts[0]}시 ${String(defParts[1]).padStart(2,'0')}분 출근 준비해주세요!`,tag);
+      }
+    }
+    // 정각 알림
+    if(totalMin===defMin){
       const tag='checkin-'+totalMin;
       if(lastCheckinTag!==tag){
         lastCheckinTag=tag;
-        if(totalMin<10*60)
-          sendNotif('출근 준비하세요 ⏰',`${h}시 ${m}분이에요. 10시 출근까지 ${10*60-totalMin}분 남았어요!`,tag);
-        else
-          sendNotif('출근 체크 해주세요 ⏰','10시가 됐어요. 하이웍스에서 출근을 찍어주세요!',tag);
+        sendNotif('출근 체크 해주세요 ⏰',`${defParts[0]}시 ${String(defParts[1]).padStart(2,'0')}분이에요. 하이웍스에서 출근을 찍어주세요!`,tag);
       }
     }
   }
