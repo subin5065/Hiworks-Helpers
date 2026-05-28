@@ -343,6 +343,45 @@ try{S.history=JSON.parse(localStorage.getItem('wh')||'[]')}catch(e){}
 try{const d=JSON.parse(localStorage.getItem('whd')||'null');if(d)S.def=d}catch(e){}
 
 function persist(){try{localStorage.setItem('wh',JSON.stringify(S.history.slice(-30)))}catch(e){}}
+function persistState(){
+  try{
+    const state={
+      phase:S.phase,
+      workType:S.workType,
+      checkIn:S.checkIn?S.checkIn.toISOString():null,
+      transitStart:S.transitStart?S.transitStart.toISOString():null,
+      remoteStart:S.remoteStart?S.remoteStart.toISOString():null,
+      officeMins:S.officeMins,
+      slackDone:S.slackDone
+    };
+    localStorage.setItem('wh_state',JSON.stringify(state));
+  }catch(e){}
+}
+function restoreState(){
+  try{
+    const raw=localStorage.getItem('wh_state');
+    if(!raw)return;
+    const state=JSON.parse(raw);
+    // 오늘 날짜 저장된 상태인지 확인 (checkIn이 오늘이어야 복원)
+    if(state.checkIn){
+      const ci=new Date(state.checkIn);
+      const today=now();
+      if(ci.toDateString()!==today.toDateString()){
+        localStorage.removeItem('wh_state');
+        return; // 날짜 다르면 리셋
+      }
+      S.checkIn=ci;
+    }
+    S.phase=state.phase||'idle';
+    S.workType=state.workType||'office';
+    S.transitStart=state.transitStart?new Date(state.transitStart):null;
+    S.remoteStart=state.remoteStart?new Date(state.remoteStart):null;
+    S.officeMins=state.officeMins||0;
+    S.slackDone=state.slackDone||false;
+    // transit-pending은 앱 재시작 시 working으로 복원
+    if(S.phase==='transit-pending')S.phase='working';
+  }catch(e){localStorage.removeItem('wh_state');}
+}
 function now(){return new Date()}
 function fmt(d){if(!d)return'--:--';return d.toTimeString().slice(0,5)}
 function hm(m){m=Math.round(Math.max(0,m));const h=Math.floor(m/60),mn=m%60;return h>0?`${h}시간 ${mn}분`:`${mn}분`}
@@ -434,14 +473,15 @@ function calcTotal(){
   return 0;
 }
 
-function doCheckIn(tStr,wt){S.checkIn=t2d(tStr);S.workType=wt;S.phase='working';S.officeMins=0;startTick();render();updateHeader()}
-function cancelCheckIn(){S.phase='idle';S.checkIn=null;clearInterval(S.timer);render();updateHeader()}
+function doCheckIn(tStr,wt){S.checkIn=t2d(tStr);S.workType=wt;S.phase='working';S.officeMins=0;startTick();render();updateHeader();persistState()}
+function cancelCheckIn(){S.phase='idle';S.checkIn=null;clearInterval(S.timer);localStorage.removeItem('wh_state');render();updateHeader()}
 function startTick(){clearInterval(S.timer);S.timer=setInterval(()=>render(),30000)}
 
 function showTransit(){
   S.officeMins=diffM(S.checkIn,now());
   S.phase='transit-pending';
   S.slackDone=false;
+  persistState();
   goScreen('transit');
   renderTransit();
 }
@@ -470,6 +510,7 @@ function checkoutBS(){
       persist();
       S.phase = 'done';
       clearInterval(S.timer);
+      persistState();
       render();
       updateHeader();
       showToast('퇴근 기록 완료!');
@@ -481,6 +522,7 @@ function confirmTransit(){
   S.transitStart=now();
   S.phase='transit';
   clearInterval(S.timer);
+  persistState();
   goScreen('home');render();updateHeader();
   showToast('이동 중이에요. 집 도착 후 재근무를 시작해주세요!');
 }
@@ -496,7 +538,7 @@ function doCheckOut(){
   S.history.push({date:now().toLocaleDateString('ko-KR'),type:S.workType,checkIn:fmt(S.checkIn),checkOut:fmt(now()),total});
   persist();S.phase='done';clearInterval(S.timer);render();updateHeader();
 }
-function resetDay(){S.phase='idle';S.checkIn=null;S.transitStart=null;S.remoteStart=null;S.officeMins=0;clearInterval(S.timer);render();updateHeader()}
+function resetDay(){S.phase='idle';S.checkIn=null;S.transitStart=null;S.remoteStart=null;S.officeMins=0;clearInterval(S.timer);localStorage.removeItem('wh_state');render();updateHeader()}
 
 function initCiPicker(){
   const hEl=document.getElementById('ci-h'),mEl=document.getElementById('ci-m');
@@ -752,9 +794,12 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'),2000);
 }
 
+restoreState();
 initDate();
 render();
 updateHeader();
+// 복원된 상태가 working/remote/transit이면 타이머 재시작
+if(S.phase==='working'||S.phase==='remote')startTick();
 
 // ── BOTTOM SHEET ──
 let bsCallback = null;
@@ -863,6 +908,7 @@ function startRemoteBS(){
       S.remoteStart = t2d(t);
       S.phase='remote';
       startTick();
+      persistState();
       render();
       updateHeader();
     }
@@ -874,6 +920,7 @@ function confirmTransit(){
   S.transitStart=now();
   S.phase='transit';
   clearInterval(S.timer);
+  persistState();
   goScreen('home');render();updateHeader();
   showToast('이동 중이에요. 집 도착 후 재근무를 시작해주세요!');
 }
