@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>출퇴근 관리</title>
+<meta name="version" content="1780023585">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
@@ -122,15 +123,7 @@ function ic(name,extraStyle=''){
   .btn-hiworks{background:var(--surface);color:var(--t1);border:1.5px solid var(--border);padding:13.5px 14px}
   .btn-ghost{background:none;border:none;color:var(--t2);font-size:14px;font-weight:700;cursor:pointer;width:100%;padding:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
   .btn-dim{opacity:.4}
-  .toggle-btn{width:51px;height:31px;border-radius:16px;border:none;cursor:pointer;position:relative;background:var(--border);transition:background .2s;flex-shrink:0}
-  .toggle-btn::after{content:'';position:absolute;top:3px;left:3px;width:25px;height:25px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-  .toggle-btn.on{background:var(--green)}
   .toggle-btn.on::after{transform:translateX(20px)}
-  .toggle-btn:disabled{opacity:.4;cursor:default}
-  .notif-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-  .notif-info{flex:1;margin-right:12px}
-  .notif-name{font-size:14px;font-weight:700;color:var(--t1);margin-bottom:2px}
-  .notif-desc{font-size:13px;color:var(--t2);font-weight:500}
 
 
   /* ── CONTENT ── */
@@ -206,6 +199,12 @@ function ic(name,extraStyle=''){
   .bs-time-pick-sep{font-size:30px;font-weight:800;color:var(--t1);padding:0 4px;user-select:none}
   .bs-now-hint{font-size:12px;font-weight:600;color:var(--t2);text-align:center;margin-bottom:20px;padding:0 20px}
   .bs-actions{padding:0 20px 8px;display:flex;flex-direction:column;gap:8px}
+  #status-banner{padding:0 16px;margin-bottom:0}
+  .sb{padding:12px 16px;border-radius:12px;font-size:14px;font-weight:700;margin-bottom:12px}
+  .sb-warn{background:var(--amber-l);color:var(--amber-t);border:1.5px solid #FFBE55}
+  .sb-ok{background:var(--green-l);color:var(--green-t);border:1.5px solid #6EE7C7}
+  .sb-info{background:var(--blue-l);color:var(--blue-t);border:1.5px solid #93C5FD}
+  .sb-blue{background:var(--blue-l);color:var(--blue-t);border:1.5px solid #93C5FD}
   #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(25,31,40,.92);color:#fff;padding:12px 22px;border-radius:24px;font-size:14px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;z-index:999}
   #toast.show{opacity:1}
 </style>
@@ -236,6 +235,7 @@ function ic(name,extraStyle=''){
 </div>
 
 <!-- SCREENS -->
+<div id="status-banner" style="padding:12px 16px 0"></div>
 <div id="screen-home" class="screen active">
   <div class="body"><div id="mc"></div></div>
 </div>
@@ -267,14 +267,7 @@ function ic(name,extraStyle=''){
         <select id="def-m" onchange="saveDef()" style="text-align:center"></select>
       </div>
     </div>
-    <div class="card">
-      <div class="card-title">알림</div>
-      <div id="notif-rows">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <div>
-            <div style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:2px">알림 전체</div>
-            <div style="font-size:13px;color:var(--t2);font-weight:500">모든 알림을 켜거나 꺼요</div>
-          </div>
+
           <button class="toggle-btn" id="toggle-master" onclick="toggleNotif('master')" aria-label="알림 전체 토글"></button>
         </div>
         <div style="height:0.5px;background:var(--border);margin-bottom:16px"></div>
@@ -344,6 +337,7 @@ try{const d=JSON.parse(localStorage.getItem('whd')||'null');if(d)S.def=d}catch(e
 
 function persist(){try{localStorage.setItem('wh',JSON.stringify(S.history.slice(-30)))}catch(e){}}
 function persistState(){
+  if(S.phase==='idle') return; // idle은 저장 불필요
   try{
     const state={
       phase:S.phase,
@@ -378,8 +372,14 @@ function restoreState(){
     S.remoteStart=state.remoteStart?new Date(state.remoteStart):null;
     S.officeMins=state.officeMins||0;
     S.slackDone=state.slackDone||false;
-    // transit-pending은 앱 재시작 시 working으로 복원
-    if(S.phase==='transit-pending')S.phase='working';
+    // transit-pending → working 복원
+    if(S.phase==='transit-pending') S.phase='working';
+    // done 상태면 기록은 이미 저장됐으므로 idle로
+    if(S.phase==='done'){
+      S.phase='idle';
+      S.checkIn=null;
+      localStorage.removeItem('wh_state');
+    }
   }catch(e){localStorage.removeItem('wh_state');}
 }
 function now(){return new Date()}
@@ -475,7 +475,7 @@ function calcTotal(){
 
 function doCheckIn(tStr,wt){S.checkIn=t2d(tStr);S.workType=wt;S.phase='working';S.officeMins=0;startTick();render();updateHeader();persistState()}
 function cancelCheckIn(){S.phase='idle';S.checkIn=null;clearInterval(S.timer);localStorage.removeItem('wh_state');render();updateHeader()}
-function startTick(){clearInterval(S.timer);S.timer=setInterval(()=>render(),30000)}
+function startTick(){clearInterval(S.timer);S.timer=setInterval(()=>{render();updateHeader();},30000)}
 
 function showTransit(){
   S.officeMins=diffM(S.checkIn,now());
@@ -547,8 +547,8 @@ function initCiPicker(){
   for(let i=0;i<24;i++){const o=document.createElement('option');o.value=i;o.textContent=String(i).padStart(2,'0');hEl.appendChild(o);}
   for(let i=0;i<60;i++){const o=document.createElement('option');o.value=i;o.textContent=String(i).padStart(2,'0');mEl.appendChild(o);}
   const parts=(S.def.time||'10:00').split(':');
-  hEl.value=parseInt(parts[0]);
-  mEl.value=parseInt(parts[1]);
+  hEl.value=String(parseInt(parts[0]));
+  mEl.value=String(parseInt(parts[1]));
   // update display immediately after populating options
   const el=document.getElementById('ci-display-text');
   if(el) el.textContent=String(hEl.value).padStart(2,'0')+':'+String(mEl.value).padStart(2,'0');
@@ -560,8 +560,8 @@ function initDefPicker(){
   for(let i=0;i<24;i++){const o=document.createElement('option');o.value=i;o.textContent=String(i).padStart(2,'0');hEl.appendChild(o);}
   for(let i=0;i<60;i++){const o=document.createElement('option');o.value=i;o.textContent=String(i).padStart(2,'0');mEl.appendChild(o);}
   const parts=(S.def.time||'10:00').split(':');
-  hEl.value=parseInt(parts[0]);
-  mEl.value=parseInt(parts[1]);
+  hEl.value=String(parseInt(parts[0]));
+  mEl.value=String(parseInt(parts[1]));
 }
 let clockTick=null;
 function startClockTick(){ /* no-op: using def time */ }
@@ -616,9 +616,7 @@ function render(){
 
   if(S.phase==='idle'){
     const dt=S.def.time||'10:00';
-    if(hr>=10)o+=`<div class="notice n-warn"><div class="notice-title">출근 체크 했나요?</div>10시가 지났어요. 하이웍스 확인해주세요.</div>`;
-    else if(hr>=7)o+=`<div class="notice n-info"><div class="notice-title">출근 준비 됐나요?</div>출근 시간을 확인하고 출근 시작을 눌러주세요.</div>`;
-    else o+=`<div class="notice n-info"><div class="notice-title">오늘도 화이팅!</div>출근 시간이 되면 알려드릴게요.</div>`;
+
     o+=`<div class="card">
       ${charImg(IMG_IN,'100px')}
       <div class="card-title">근무 유형</div>
@@ -801,10 +799,6 @@ render();
 updateHeader();
 // 복원된 상태가 working/remote/transit이면 타이머 재시작
 if(S.phase==='working'||S.phase==='remote')startTick();
-// 알림 스케줄러: 권한 있으면 무조건 시작
-if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
-  registerSW().then(()=>startNotifScheduler());
-}
 
 // ── BOTTOM SHEET ──
 let bsCallback = null;
@@ -826,7 +820,7 @@ function openBS(title, sub, confirmLabel, defaultTime, callback, extraHTML){
 
   // set default time
   const [h, m] = (defaultTime || fmt(now())).split(':').map(Number);
-  hEl.value = h; mEl.value = m;
+  hEl.value = String(h); mEl.value = String(m);
 
   updateBSHint();
 
@@ -859,11 +853,13 @@ function closeBS(){
 
 function confirmBS(){
   const hEl=document.getElementById('bs-h'),mEl=document.getElementById('bs-m');
-  const tStr = String(hEl.value).padStart(2,'0') + ':' + String(mEl.value).padStart(2,'0');
+  const hVal = hEl&&hEl.value!==''?parseInt(hEl.value):0;
+  const mVal = mEl&&mEl.value!==''?parseInt(mEl.value):0;
+  const tStr = String(hVal).padStart(2,'0') + ':' + String(mVal).padStart(2,'0');
   const cb = bsCallback;
   bsCallback = null;
   closeBS();
-  if(cb) setTimeout(()=>cb(tStr), 320); // BS 닫힘 애니메이션(300ms) 후 실행
+  if(cb) setTimeout(()=>cb(tStr), 50);
 }
 
 // ── OVERRIDE ACTION FUNCTIONS TO USE BOTTOM SHEET ──
@@ -940,145 +936,6 @@ document.addEventListener('DOMContentLoaded', function(){
   if(calSpan) calSpan.innerHTML = ICONS['calendar'];
   const setSpan = document.getElementById('ico-settings');
   if(setSpan) setSpan.innerHTML = ICONS['settings'];
-});
-</script>
-
-<script>
-// ── NOTIFICATION STATE ──
-const NP = {
-  master: true,
-  checkin: true,
-  transit: true,
-  done: true,
-  remote: true
-};
-try { const s=JSON.parse(localStorage.getItem('wh_notif')||'null'); if(s) Object.assign(NP,s); } catch(e){}
-function saveNP(){ try{localStorage.setItem('wh_notif',JSON.stringify(NP))}catch(e){} }
-
-function notifEnabled(key){ return NP.master && NP[key] && Notification.permission==='granted'; }
-
-function updateToggleUI(){
-  const perm = Notification.permission;
-  const hint = document.getElementById('notif-permission-hint');
-  const iosHint = document.getElementById('notif-ios-hint');
-  if(!hint) return;
-  if(perm==='default') hint.style.display='block';
-  else hint.style.display='none';
-  if(iosHint && perm==='granted' && /iPhone|iPad/i.test(navigator.userAgent) && !navigator.standalone){
-    iosHint.style.display='block';
-  }
-  ['master','checkin','transit','done','remote'].forEach(k=>{
-    const btn = document.getElementById('toggle-'+k);
-    if(!btn) return;
-    const isOn = k==='master' ? NP.master : (NP.master && NP[k]);
-    btn.classList.toggle('on', isOn && (perm==='granted'||perm==='default'));
-    // disable sub-toggles if master is off
-    if(k!=='master') btn.disabled = !NP.master;
-  });
-}
-
-async function toggleNotif(key){
-  if(!('Notification' in window)){
-    showToast('홈 화면에 추가 후 사용해주세요');return;
-  }
-  if(Notification.permission==='denied'){
-    showToast('설정 > 알림에서 먼저 허용해주세요');return;
-  }
-  if(Notification.permission==='default'){
-    const r=await Notification.requestPermission();
-    if(r!=='granted'){showToast('알림 권한이 필요해요');updateToggleUI();return;}
-    await registerSW();
-  }
-  NP[key]=!NP[key];
-  if(key==='master'){
-    if(NP.master){startNotifScheduler();showToast('알림이 켜졌어요');}
-    else{clearInterval(notifTimer);showToast('알림이 꺼졌어요');}
-  } else {
-    showToast(NP[key]?'켜졌어요':'꺼졌어요');
-  }
-  saveNP();
-  updateToggleUI();
-}
-
-function sendNotif(title,body,tag){
-  if(Notification.permission!=='granted') return;
-  if(navigator.serviceWorker&&navigator.serviceWorker.controller){
-    navigator.serviceWorker.controller.postMessage({type:'NOTIFY',title,body,tag});
-  } else {
-    try{new Notification(title,{body,tag})}catch(e){}
-  }
-}
-
-let notifTimer=null, lastTag='', lastCheckinTag='';
-function startNotifScheduler(){
-  clearInterval(notifTimer);
-  if(Notification.permission!=='granted') return;
-  notifTimer=setInterval(checkNotifs,60000);
-  checkNotifs();
-}
-function checkNotifs(){
-  if(Notification.permission!=='granted') return;
-  if(!NP.master) return;
-  const h=now().getHours(),m=now().getMinutes(),ph=S.phase;
-  // 설정된 기본 출근 시간 기준: 10분 전 & 정각 알림
-  if(notifEnabled('checkin')&&ph==='idle'){
-    const totalMin=h*60+m;
-    const defParts=(S.def.time||'10:00').split(':').map(Number);
-    const defMin=defParts[0]*60+defParts[1];
-    // 10분 전 알림
-    if(totalMin===defMin-10){
-      const tag='checkin-pre-'+totalMin;
-      if(lastCheckinTag!==tag){
-        lastCheckinTag=tag;
-        sendNotif('출근 준비하세요 ⏰',`출근 10분 전이에요. ${defParts[0]}시 ${String(defParts[1]).padStart(2,'0')}분 출근 준비해주세요!`,tag);
-      }
-    }
-    // 정각 알림
-    if(totalMin===defMin){
-      const tag='checkin-'+totalMin;
-      if(lastCheckinTag!==tag){
-        lastCheckinTag=tag;
-        sendNotif('출근 체크 해주세요 ⏰',`${defParts[0]}시 ${String(defParts[1]).padStart(2,'0')}분이에요. 하이웍스에서 출근을 찍어주세요!`,tag);
-      }
-    }
-  }
-  if(notifEnabled('transit')&&ph==='working'&&S.workType==='office'){
-    const eff=calcEff();
-    if(eff>=CORE&&eff<CORE+2&&lastTag!=='transit-ready'){lastTag='transit-ready';sendNotif('재택전환 가능! 🏠','코어타임 5시간 완료. 재택전환할 수 있어요.','transit-ready')}
-  }
-  if(notifEnabled('done')&&(ph==='working'||ph==='remote')&&S.checkIn){
-    const total=calcTotal();
-    if(total>=TOTAL&&total<TOTAL+2&&lastTag!=='done'){lastTag='done';sendNotif('퇴근하세요! 🎉','8시간 근무 완료. 하이웍스에서 퇴근을 찍어주세요.','done')}
-  }
-  if(notifEnabled('remote')&&ph==='transit'&&S.transitStart){
-    const el=diffM(S.transitStart,now());
-    if(el>=30&&el<32&&lastTag!=='remote-remind'){lastTag='remote-remind';sendNotif('집 도착했나요? 🏠','하이웍스에서 "근무" 버튼을 누르고 재근무를 시작해주세요!','remote-remind')}
-  }
-}
-
-async function registerSW(){
-  if(!('serviceWorker' in navigator)) return;
-  const swCode=`self.addEventListener('message',e=>{if(e.data&&e.data.type==='NOTIFY'){self.registration.showNotification(e.data.title,{body:e.data.body,tag:e.data.tag||'default',icon:''})}});self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(cls=>{if(cls.length)return cls[0].focus();return clients.openWindow('/')}))});`;
-  try{
-    const blob=new Blob([swCode],{type:'application/javascript'});
-    const url=URL.createObjectURL(blob);
-    await navigator.serviceWorker.register(url,{scope:'/'});
-    await navigator.serviceWorker.ready;
-  }catch(e){}
-}
-
-window.addEventListener('load',async()=>{
-  if(Notification.permission==='granted'){ await registerSW(); startNotifScheduler(); }
-  updateToggleUI();
-});
-// Update UI when settings panel is opened
-const _origToggleSettings = typeof toggleSettings==='function' ? toggleSettings : null;
-document.addEventListener('DOMContentLoaded',()=>{
-  const sbtn=document.getElementById('sbtn');
-  if(sbtn){
-    const orig=sbtn.onclick;
-    sbtn.onclick=function(e){ if(orig)orig.call(this,e); setTimeout(updateToggleUI,50); };
-  }
 });
 </script>
 
